@@ -52,3 +52,5 @@ install
 *.creator.user
 *.includes
 *.files
+*.cflags
+*.cxxflags
