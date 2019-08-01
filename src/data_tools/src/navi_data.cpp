@@ -382,8 +382,8 @@ tuple<ObsT, TransT, AngsT, MatchesT, BBsT, ObsT> create_submaps(const mbes_ping:
         int ping_counter = 0;
         for (const mbes_ping& ping : track_pings) {
             //cout << "Counter : " << counter << " and size: " << points.rows() << " and new points: " << ping.beams.size() << endl;
-            if (counter + ping.beams.size() > points.rows()) {
-                points.conservativeResize(counter + ping.beams.size(), 3);
+            if (counter + ping.beams.size() >= points.rows()) {
+                points.conservativeResize(points.rows() + ping.beams.size() - (points.rows() - counter), 3);
             }
             for (const Vector3d& p : ping.beams) {
                 points.row(counter) = p;
