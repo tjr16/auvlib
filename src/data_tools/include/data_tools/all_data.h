@@ -150,6 +150,7 @@ struct all_echosounder_depth {
 std_data::mbes_ping::PingsT convert_matched_entries(all_mbes_ping::PingsT& pings, all_nav_entry::EntriesT& entries);
 std_data::mbes_ping::PingsT match_attitude(std_data::mbes_ping::PingsT& pings, all_nav_attitude::EntriesT& entries);
 csv_data::csv_asvp_sound_speed::EntriesT convert_sound_speeds(const all_mbes_ping::PingsT& pings);
+double angle_limit (double angle);
 
 } // namespace all_data
 

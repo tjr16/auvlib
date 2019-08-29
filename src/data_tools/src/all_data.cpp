@@ -246,7 +246,8 @@ all_mbes_ping read_datagram<all_mbes_ping, all_xyz88_datagram>(std::ifstream& in
 	for (int i = 0; i < header.nbr_beams; ++i) {
 		input.read(reinterpret_cast<char*>(&ping), sizeof(ping));
         //if (short(le16toh(ping.rt_cleaning_info)) < 0) { // (ping.detection_info & mask[5]) != 0) {
-        if (ping.rt_cleaning_info < 0 || (ping.detection_info & mask[0]) != 0 || ping.depth > 40.) {
+        /* Use || ping.depth > 70. with Mission_1 dataset*/
+        if (ping.rt_cleaning_info < 0 || (ping.detection_info & mask[0]) != 0 /*|| ping.depth > 70.*/) {
             continue;
         }
 		pings.push_back(ping);
@@ -266,7 +267,6 @@ all_mbes_ping read_datagram<all_mbes_ping, all_xyz88_datagram>(std::ifstream& in
 template <>
 all_nav_entry read_datagram<all_nav_entry, all_position_datagram>(std::ifstream& input, const all_position_datagram& header)
 {
-	//cout << "Got a position datagram, skipping: " << int(header.nbr_bytes_input) << endl;
 
     //input.ignore(header.nbr_bytes_input);
     char buffer[255];
@@ -276,7 +276,7 @@ all_nav_entry read_datagram<all_nav_entry, all_position_datagram>(std::ifstream&
     boost::split(strs, buffer, boost::is_any_of(","));
     //cout << "Str number 6: " << strs[6] << endl;
 	all_nav_entry entry;
-	entry.id_ = header.pos_count;
+    entry.id_ = header.pos_count;
 	entry.lat_ = double(header.latitude)/20000000.;
 	entry.long_ = double(header.longitude)/10000000.;
     entry.depth_ = stof(strs[6]);
@@ -323,6 +323,7 @@ all_nav_attitude read_datagram<all_nav_attitude, all_attitude_datagram>(std::ifs
         sample.heading = M_PI/180.*0.01*double(meas.heading);
         sample.heave = 0.01*double(meas.heave);
         entry.samples.push_back(sample);
+//        cout << "Time " << header.date << " " << header.time << ", roll " << (M_PI/180.)*meas.roll << " pitch: " << (M_PI/180.)*meas.pitch <<  ", heading " << (M_PI/180.)*meas.heading << endl;
 	}
     
 	unsigned char system_desc; // Sensor system descriptor 1U
@@ -341,6 +342,15 @@ all_echosounder_depth read_datagram<all_echosounder_depth, all_echosounder_depth
     entry.depth_ = 100.*double(header.echo_depth); // Height in cm
 	
     return entry;
+}
+
+double angle_limit (double angle) // keep angle within [-pi;pi[
+{
+    while (angle >= 2*M_PI)
+        angle -= 2*M_PI;
+    while (angle < 0)
+        angle += 2*M_PI;
+    return angle;
 }
 
 mbes_ping::PingsT convert_matched_entries(all_mbes_ping::PingsT& pings, all_nav_entry::EntriesT& entries)
@@ -483,8 +493,8 @@ mbes_ping::PingsT match_attitude(mbes_ping::PingsT& pings, all_nav_attitude::Ent
         Eigen::Matrix3d Rz = Eigen::AngleAxisd(ping.heading_, Eigen::Vector3d::UnitZ()).matrix();
         Eigen::Matrix3d Ry = Eigen::AngleAxisd(1.*ping.pitch_, Eigen::Vector3d::UnitY()).matrix();
         Eigen::Matrix3d Rx = Eigen::AngleAxisd(1.*ping.roll_, Eigen::Vector3d::UnitX()).matrix();
-        Eigen::Matrix3d R = Rz*Ry;
-        
+        Eigen::Matrix3d R = Ry*Rz;
+//        std::cout << "Roll " << ping.roll_ << " pitch " << ping.pitch_ << std::endl;
         for (Eigen::Vector3d& beam : ping.beams) {
             //beam = beam - ping.pos_;
             //Rz = Eigen::AngleAxisd(-ping.heading_, Eigen::Vector3d::UnitZ()).matrix();
