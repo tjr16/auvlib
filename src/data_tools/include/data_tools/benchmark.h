@@ -15,6 +15,7 @@
 #include <data_tools/std_data.h>
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
+#include <fstream>
 
 namespace benchmark {
 
@@ -73,6 +74,7 @@ struct track_error_benchmark {
     void add_benchmark(std_data::mbes_ping::PingsT& pings, const std::string& name);
     void add_benchmark(std_data::pt_submaps::TransT& trans_corr, std_data::pt_submaps::RotsT& rots_corr, const std::string& name);
     void print_summary();
+    void save_summary(std::string outFilename);
 
     // Overloaded functions to work with input submaps in PointsT format
     void add_ground_truth(PointsT &map_points, PointsT &track_points);

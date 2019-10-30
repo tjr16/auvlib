@@ -212,7 +212,7 @@ void divide_tracks(mbes_ping::PingsT& pings)
         mean_width /= count;
         double length = (last_pos - first_pos).norm();
 
-        int nbr_submaps = int(length/mean_width+0.5);
+        int nbr_submaps = int(length/mean_width+2);
         double submap_length = length / double(nbr_submaps);
 
         cout << "Mean width: " << mean_width << ", Length: " << length << ",  Nbr submaps: " << nbr_submaps << ", Submap length: " << submap_length << endl;

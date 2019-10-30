@@ -559,6 +559,24 @@ void track_error_benchmark::print_summary()
     cout << "Min consistency error: " << min_consistency_error << endl;
 }
 
+
+void track_error_benchmark::save_summary(std::string outFilename)
+{
+    ofstream fileOutputStream;
+    if (outFilename != "-") {
+      cerr << "Writing into " << outFilename << endl;
+      fileOutputStream.open(outFilename.c_str(), std::ios::in | std::ios::out | std::ios::ate);
+    } else {
+      cerr << "writing to stdout" << endl;
+    }
+    ostream& fout = outFilename != "-" ? fileOutputStream : std::cout;
+
+    for (const pair<string, double>& p : consistency_rms_errors) {
+        fout << p.second << " ";
+    }
+    fileOutputStream.close();
+}
+
 void registration_summary_benchmark::print_summary()
 {
     double optimized_error_sum = 0.;
