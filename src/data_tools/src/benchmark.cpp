@@ -759,9 +759,9 @@ std::pair<double, Eigen::MatrixXd> track_error_benchmark::compute_consistency_er
     for (int i = 0; i < rows; ++i) {
         for (int j = 0; j < cols; ++j) {
             for (int m = 0; m < nbr_maps; ++m) {
-                if (grid_maps[i][j][m].rows() > 20) {
+                if (grid_maps[i][j][m].rows() > 100) {
                     //cout << "map " << m << " size: " << grid_maps[i][j][m].rows() << endl;
-                    int subsample = int(double(grid_maps[i][j][m].rows())/20.);
+                    int subsample = int(double(grid_maps[i][j][m].rows())/100.);
                     int counter = 0;
                     for (int p = 0; p < grid_maps[i][j][m].rows(); ++p) {
                         if (p % subsample == 0) {
