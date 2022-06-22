@@ -77,7 +77,6 @@ struct track_error_benchmark {
     // Overloaded functions to work with input submaps in PointsT format
     void add_ground_truth(PointsT &map_points, PointsT &track_points);
     void add_benchmark(PointsT &maps_points, PointsT &tracks_points, const std::string &name);
-
     void track_img_params(PointsT& points_maps, int rows=1000, int cols=1000);
     cv::Mat draw_height_map(PointsT &points_maps);
     std::vector<std::vector<std::vector<Eigen::MatrixXd> > > create_grids_from_pings(std_data::mbes_ping::PingsT& pings);
@@ -85,10 +84,14 @@ struct track_error_benchmark {
     std::pair<double, Eigen::MatrixXd> compute_consistency_error(
             std::vector<std::vector<std::vector<Eigen::MatrixXd> > >& grid_maps);
     cv::Mat draw_error_consistency_map(Eigen::MatrixXd values);
+    
+    // Draw all heightmaps at once so that the images can be normalized
+    void draw_normalized_height_map(PointsT& maps_points, const std::string& name);
 
     // Draw heightmap of submaps
     cv::Mat draw_height_submap(PointsT &map_points, PointsT &track_points, const int &submap_number);
-    void map_draw_params(PointsT& map_points, PointsT& track_points, const int& submap_number);
+    void map_draw_params(PointsT& map_points, PointsT& track_points);
+
 
     void track_img_params(std_data::mbes_ping::PingsT& pings, int rows=1000, int cols=1000);
     void draw_track_img(std_data::mbes_ping::PingsT& pings, cv::Mat& img, const cv::Scalar& color, const std::string& name);

@@ -61,10 +61,10 @@ void track_error_benchmark::track_img_params(PointsT& points_maps, int rows, int
         return p1[1] < p2[1];
     };
 
-    double maxx = std::max_element(gt_track.begin(), gt_track.end(), xcomp)->data()[0]+20;
-    double minx = std::min_element(gt_track.begin(), gt_track.end(), xcomp)->data()[0]-20;
-    double maxy = std::max_element(gt_track.begin(), gt_track.end(), ycomp)->data()[1]+20;
-    double miny = std::min_element(gt_track.begin(), gt_track.end(), ycomp)->data()[1]-20;
+    double maxx = std::max_element(gt_track.begin(), gt_track.end(), xcomp)->data()[0];
+    double minx = std::min_element(gt_track.begin(), gt_track.end(), xcomp)->data()[0];
+    double maxy = std::max_element(gt_track.begin(), gt_track.end(), ycomp)->data()[1];
+    double miny = std::min_element(gt_track.begin(), gt_track.end(), ycomp)->data()[1];
 
     cout << "Min X: " << minx << ", Max X: " << maxx << ", Min Y: " << miny << ", Max Y: " << maxy << endl;
 
@@ -248,8 +248,10 @@ pair<double, cv::Mat> track_error_benchmark::compute_draw_consistency_map(mbes_p
     return make_pair(meanv, error_img);
 }
 
-void track_error_benchmark::map_draw_params(PointsT& map_points, PointsT& track_points,
-                                            const int& submap_number){
+void track_error_benchmark::map_draw_params(PointsT& map_points, PointsT& track_points){
+
+    // min_depth_ = 0;
+    // max_depth_ = 0;
 
     int rows = 500;
     int cols = 500;
@@ -282,9 +284,13 @@ void track_error_benchmark::map_draw_params(PointsT& map_points, PointsT& track_
     Eigen::ArrayXXd counts_pos = counts.array() + (counts.array() == 0.).cast<double>();
     means.array() /= counts_pos;
 
-    min_depth_ = means.minCoeff();
+    // Min depth across bms
+    min_depth_ = (min_depth_ > means.minCoeff()) ? (means.minCoeff()) : (min_depth_);
     means.array() -= min_depth_*(counts.array() > 0).cast<double>();
-    max_depth_ = means.maxCoeff();
+    max_depth_ = (max_depth_ < means.maxCoeff()) ? (means.maxCoeff()) : (max_depth_);
+
+    std::cout << "Min depth " << min_depth_ << std::endl;
+    std::cout << "Max depth " << max_depth_ << std::endl;
 }
 
 cv::Mat track_error_benchmark::draw_height_map(PointsT& points_maps)
@@ -313,11 +319,11 @@ cv::Mat track_error_benchmark::draw_height_map(PointsT& points_maps)
     Eigen::ArrayXXd counts_pos = counts.array() + (counts.array() == 0.).cast<double>();
     means.array() /= counts_pos;
 
-    double minv = means.minCoeff();
+    double minv = min_depth_;
     double meanv = means.mean();
 
     means.array() -= minv*(counts.array() > 0).cast<double>();
-    double maxv = means.maxCoeff();
+    double maxv = max_depth_;
     means.array() /= maxv;
 
     cv::Mat mean_img = cv::Mat(rows, cols, CV_8UC3, cv::Scalar(255, 255, 255));
@@ -333,6 +339,7 @@ cv::Mat track_error_benchmark::draw_height_map(PointsT& points_maps)
 
     return mean_img;
 }
+
 
 cv::Mat track_error_benchmark::draw_height_map(mbes_ping::PingsT& pings)
 {
@@ -449,6 +456,9 @@ void track_error_benchmark::add_ground_truth(PointsT& map_points, PointsT& track
     int rows = 500;
     int cols = 500;
 
+    min_depth_ = 0;
+    max_depth_ = 0;
+
     for(const Eigen::MatrixXd& track_i: track_points){
         for(unsigned int i=0; i<track_i.rows(); i++){
             gt_track.push_back(track_i.row(i));
@@ -477,9 +487,10 @@ void track_error_benchmark::add_benchmark(PointsT& maps_points, PointsT& tracks_
     error_img_paths[name] = error_img_path;
     consistency_rms_errors[name] = consistency_rms_error;
 
-    cv::Mat mean_img = draw_height_map(maps_points);
-    string mean_img_path = dataset_name + "_" + name + "_mean_depth.png";
-    cv::imwrite(mean_img_path, mean_img);
+    // This function will normalize the heightmaps across bms
+    // To draw them, call draw_normalized_height_map() on your script
+    // after all the calls to add_benchmark
+    map_draw_params(maps_points, tracks_points);
 
     cout << " -------------- " << endl;
     cout << "Added benchmark " << name << endl;
@@ -488,6 +499,15 @@ void track_error_benchmark::add_benchmark(PointsT& maps_points, PointsT& tracks_
     cout << " -------------- " << endl;
 
 }
+
+void track_error_benchmark::draw_normalized_height_map(PointsT& maps_points, 
+                                                       const std::string& name){
+    
+    cv::Mat mean_img = draw_height_map(maps_points);
+    string mean_img_path = dataset_name + "_" + name + "_mean_depth.png";
+    cv::imwrite(mean_img_path, mean_img);
+}
+
 
 void track_error_benchmark::add_benchmark(mbes_ping::PingsT& pings, const std::string& name)
 {
@@ -748,32 +768,33 @@ vector<vector<vector<Eigen::MatrixXd> > > track_error_benchmark::create_grids_fr
 std::pair<double, Eigen::MatrixXd> track_error_benchmark::compute_consistency_error(
         vector<vector<vector<Eigen::MatrixXd> > >& grid_maps)
 {
-    int rows = grid_maps.size();
-    int cols = grid_maps[0].size();
+    int rows = 500;
+    int cols = 500;
     int nbr_maps = grid_maps[0][0].size();
 //    cout << "Number maps for error benchmark: " << nbr_maps << endl;
 
     // Subsample grids
     Eigen::MatrixXd values(rows, cols); values.setZero();
+    std::cout << "Computing RMS error" << std::endl;
     //Eigen::MatrixXd counts(rows, cols); counts.setZero();
-    for (int i = 0; i < rows; ++i) {
-        for (int j = 0; j < cols; ++j) {
-            for (int m = 0; m < nbr_maps; ++m) {
-                if (grid_maps[i][j][m].rows() > 100) {
-                    //cout << "map " << m << " size: " << grid_maps[i][j][m].rows() << endl;
-                    int subsample = int(double(grid_maps[i][j][m].rows())/100.);
-                    int counter = 0;
-                    for (int p = 0; p < grid_maps[i][j][m].rows(); ++p) {
-                        if (p % subsample == 0) {
-                            grid_maps[i][j][m].row(counter) = grid_maps[i][j][m].row(p);
-                            ++counter;
-                        }
-                    }
-                    grid_maps[i][j][m].conservativeResize(counter, 3);
-                }
-            }
-        }
-    }
+    // for (int i = 0; i < rows; ++i) {
+    //     for (int j = 0; j < cols; ++j) {
+    //         for (int m = 0; m < nbr_maps; ++m) {
+    //             if (grid_maps[i][j][m].rows() > 100) {
+    //                 //cout << "map " << m << " size: " << grid_maps[i][j][m].rows() << endl;
+    //                 int subsample = int(double(grid_maps[i][j][m].rows())/100.);
+    //                 int counter = 0;
+    //                 for (int p = 0; p < grid_maps[i][j][m].rows(); ++p) {
+    //                     if (p % subsample == 0) {
+    //                         grid_maps[i][j][m].row(counter) = grid_maps[i][j][m].row(p);
+    //                         ++counter;
+    //                     }
+    //                 }
+    //                 grid_maps[i][j][m].conservativeResize(counter, 3);
+    //             }
+    //         }
+    //     }
+    // }
 
     // For each grid
     double value_sum = 0.;

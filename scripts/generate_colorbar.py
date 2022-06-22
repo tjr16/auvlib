@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 #import pylab as pl
 from matplotlib import pyplot as plt
@@ -11,8 +11,8 @@ minv = float(sys.argv[2])
 maxv = float(sys.argv[3])
 path = name + "_colorbar_jet.png"
 
-print "Got minv: ", minv, " maxv: ", maxv
-print "Saving to image file: ", path
+print ("Got minv: ", minv, " maxv: ", maxv)
+print ("Saving to image file: ", path)
 
 plt.figure(figsize=(3.5,3.5))
 img = plt.imshow(np.array([[minv,maxv]]), cmap="jet")
