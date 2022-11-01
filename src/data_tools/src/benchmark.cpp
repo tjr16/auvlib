@@ -171,8 +171,8 @@ std::tuple<uint8_t, uint8_t, uint8_t> jet(double x)
 
 pair<double, cv::Mat> track_error_benchmark::compute_draw_consistency_map(mbes_ping::PingsT& pings)
 {
-    int rows = 500;
-    int cols = 500;
+    int rows = 100;
+    int cols = 100;
 
     Eigen::MatrixXd means(rows, cols); means.setZero();
     Eigen::MatrixXd counts(rows, cols); counts.setZero();
@@ -253,8 +253,8 @@ void track_error_benchmark::map_draw_params(PointsT& map_points, PointsT& track_
     // min_depth_ = 0;
     // max_depth_ = 0;
 
-    int rows = 500;
-    int cols = 500;
+    int rows = 100;
+    int cols = 100;
     gt_track.clear();
     for(const Eigen::MatrixXd& track_i: track_points){
       for(unsigned int i=0; i<track_i.rows(); i++){
@@ -295,8 +295,8 @@ void track_error_benchmark::map_draw_params(PointsT& map_points, PointsT& track_
 
 cv::Mat track_error_benchmark::draw_height_map(PointsT& points_maps)
 {
-    int rows = 500;
-    int cols = 500;
+    int rows = 100;
+    int cols = 100;
 
     Eigen::MatrixXd means(rows, cols); means.setZero();
     Eigen::MatrixXd counts(rows, cols); counts.setZero();
@@ -343,8 +343,8 @@ cv::Mat track_error_benchmark::draw_height_map(PointsT& points_maps)
 
 cv::Mat track_error_benchmark::draw_height_map(mbes_ping::PingsT& pings)
 {
-    int rows = 500;
-    int cols = 500;
+    int rows = 100;
+    int cols = 100;
 
     Eigen::MatrixXd means(rows, cols); means.setZero();
     Eigen::MatrixXd counts(rows, cols); counts.setZero();
@@ -390,8 +390,8 @@ cv::Mat track_error_benchmark::draw_height_map(mbes_ping::PingsT& pings)
 cv::Mat track_error_benchmark::draw_height_submap(PointsT& map_points, PointsT& track_points,
                                                   const int& submap_number){
 
-    int rows = 500;
-    int cols = 500;
+    int rows = 100;
+    int cols = 100;
 
     gt_track.clear();
     for(const Eigen::MatrixXd& track_i: track_points){
@@ -441,8 +441,8 @@ cv::Mat track_error_benchmark::draw_height_submap(PointsT& map_points, PointsT& 
 
 void track_error_benchmark::add_ground_truth(mbes_ping::PingsT& pings)
 {
-    int rows = 500;
-    int cols = 500;
+    int rows = 100;
+    int cols = 100;
     for (mbes_ping& ping : pings) {
         gt_track.push_back(ping.pos_);
     }
@@ -453,8 +453,8 @@ void track_error_benchmark::add_ground_truth(mbes_ping::PingsT& pings)
 
 void track_error_benchmark::add_ground_truth(PointsT& map_points, PointsT& track_points){
 
-    int rows = 500;
-    int cols = 500;
+    int rows = 100;
+    int cols = 100;
 
     min_depth_ = 0;
     max_depth_ = 0;
@@ -686,8 +686,8 @@ mbes_ping::PingsT registration_summary_benchmark::get_submap_pings_index(const m
 
 vector<vector<vector<Eigen::MatrixXd> > > track_error_benchmark::create_grids_from_pings(mbes_ping::PingsT& pings){
 
-    int rows = 500;
-    int cols = 500;
+    int rows = 100;
+    int cols = 100;
 
     double res, minx, miny, x0, y0;
     res = params[0]; minx = params[1]; miny = params[2]; x0 = params[3]; y0 = params[4];
@@ -731,8 +731,8 @@ vector<vector<vector<Eigen::MatrixXd> > > track_error_benchmark::create_grids_fr
 
 vector<vector<vector<Eigen::MatrixXd> > > track_error_benchmark::create_grids_from_matrices(PointsT& points_maps){
 
-    int rows = 500;
-    int cols = 500;
+    int rows = 100;
+    int cols = 100;
 
     double res, minx, miny, x0, y0;
     res = params[0]; minx = params[1]; miny = params[2]; x0 = params[3]; y0 = params[4];
@@ -768,8 +768,8 @@ vector<vector<vector<Eigen::MatrixXd> > > track_error_benchmark::create_grids_fr
 std::pair<double, Eigen::MatrixXd> track_error_benchmark::compute_consistency_error(
         vector<vector<vector<Eigen::MatrixXd> > >& grid_maps)
 {
-    int rows = 500;
-    int cols = 500;
+    int rows = 100;
+    int cols = 100;
     int nbr_maps = grid_maps[0][0].size();
 //    cout << "Number maps for error benchmark: " << nbr_maps << endl;
 
