@@ -751,11 +751,13 @@ vector<vector<vector<Eigen::MatrixXd> > > track_error_benchmark::create_grids_fr
     // For each submap
     for (Eigen::MatrixXd& submap_k: points_maps) {
         // For each beam in submap k
+        // JR: Insert the point in the corresponding grid
         for(unsigned int i=0; i<submap_k.rows(); i++){
             Eigen::Vector3d point_i = submap_k.row(i);
             int col = int(x0+res*(point_i[0]-minx));
             int row = int(y0+res*(point_i[1]-miny));
             if (col >= 0 && col < cols && row >= 0 && row < rows) {
+                // JR: conservativeResize: Resizes the matrix to rows x cols while leaving old values untouched.
                 grid_maps[row][col][k].conservativeResize(grid_maps[row][col][k].rows()+1, 3);
                 grid_maps[row][col][k].bottomRows<1>() = point_i.transpose();
             }
@@ -806,7 +808,9 @@ std::pair<double, Eigen::MatrixXd> track_error_benchmark::compute_consistency_er
             // Gather neighbors
             vector<Eigen::MatrixXd> neighborhood_points(nbr_maps);
             vector<bool> neighborhood_present(nbr_maps, true);
+            // JR: For each map
             for (int m = 0; m < nbr_maps; ++m) {
+                // JR: ii = i-1 and i ? jj = j-1 and j ?
                 for (int ii = std::max(i-1, 0); ii < std::min(i+1, rows-1); ++ii) {
                     for (int jj = std::max(j-1, 0); jj < std::min(j+1, cols-1); ++jj) {
                         //neighborhood_present[m] = neighborhood_present[m] && grid_maps[ii][jj][m].rows() > 0;
@@ -823,6 +827,7 @@ std::pair<double, Eigen::MatrixXd> track_error_benchmark::compute_consistency_er
             // Registration error
             double value = 0.;
             int nbr_averages = 10;
+            // JR: Run 10 times?
             for (int c = 0; c < nbr_averages; ++c) {
                 double maxm = 0.;
                 for (int m = 0; m < nbr_maps; ++m) {
@@ -840,16 +845,18 @@ std::pair<double, Eigen::MatrixXd> track_error_benchmark::compute_consistency_er
                 }
                 value += maxm;
             }
+            // JR: mean of the 10 runs
             value /= double(nbr_averages);
 
             values(i, j) = value;
             if (value > 0) {
+                // JR: squared distance
                 value_sum += value*value;
                 value_count += 1.;
             }
         }
     }
-
+    // JR: seems not RMS?
     return make_pair(sqrt(value_sum/value_count), values);
 }
 
